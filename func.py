@@ -1,5 +1,7 @@
 from watchdog.observers import Observer
 from watchdog.events import (
+    DirModifiedEvent,
+    FileModifiedEvent,
     FileSystemEventHandler,
     DirCreatedEvent,
     FileCreatedEvent,
@@ -15,7 +17,7 @@ class MyHandler(FileSystemEventHandler):
     def on_deleted(self, event: DirDeletedEvent | FileDeletedEvent) -> None:
         pass
 
-    def on_modified(self, event):
+    def on_modified(self, event: DirModifiedEvent | FileModifiedEvent) -> None:
         print(f"File {event.src_path} has been modified!")
 
 
