@@ -1,4 +1,4 @@
 python-dotenv
 watchdog==5.0.2
-pyicloud=1.0.0
+pyicloud==1.0.0
 
