@@ -1,11 +1,8 @@
 import sys
 import os
-import time
 
 from dotenv import load_dotenv
 from pyicloud.services.drive import DriveNode
-from watchdog.events import FileSystemEvent, FileSystemEventHandler
-from watchdog.observers import Observer
 from shutil import copyfileobj
 from pyicloud import PyiCloudService
 
@@ -64,36 +61,19 @@ obsidian_folder: DriveNode | None = (
 )
 
 
-if obsidian_folder is not None:
+def folder_enum(folder, path) -> None:
+    for item in folder.dir():
+        if folder[item].type == "folder":
+            print(item, "Folder")
+            os.makedirs(os.path.join(path, item), exist_ok=True)
+            folder_enum(folder[item], os.path.join(path, item))
 
-    def folder_enum(folder, path) -> None:
-        for item in folder.dir():
-            if folder[item].type == "folder":
-                print(item, "Folder")
-                os.makedirs(os.path.join(path, item), exist_ok=True)
-                folder_enum(folder[item], os.path.join(path, item))
+        if folder[item].type == "file":
+            with folder[item].open(stream=True) as response:
+                with open(os.path.join(path, item), "wb") as file:
+                    copyfileobj(response.raw, file)
 
-            if folder[item].type == "file":
-                with folder[item].open(stream=True) as response:
-                    with open(os.path.join(path, item), "wb") as file:
-                        copyfileobj(response.raw, file)
-
-    path = "obsidian"
-    os.makedirs(path, exist_ok=True)
-    folder_enum(obsidian_folder, path)
-
-    class MyEventHandler(FileSystemEventHandler):
-        def on_any_event(self, event: FileSystemEvent) -> None:
-            print(event)
-
-    event_handler = MyEventHandler()
-    observer = Observer()
-    observer.schedule(event_handler, ".", recursive=True)
-    observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    finally:
-        observer.stop()
-        observer.join()
+path = "obsidian"
+os.makedirs(path, exist_ok=True)
+folder_enum(obsidian_folder, path)
 
